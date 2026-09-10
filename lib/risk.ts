@@ -1,5 +1,5 @@
 export type RiskLevel = 'SAFE'|'LOW'|'MEDIUM'|'HIGH'|'CRITICAL';
-export type Truck = { id:string; lat:number; lng:number; accuracy:number|null; speed:number|null; heading:number|null; lastSeen:number; status:'ACTIVE'|'OFFLINE'; source:'GPS'|'DEMO' };
+export type Truck = { id:string; lat:number; lng:number; accuracy:number|null; speed:number|null; heading:number|null; lastSeen:number; status:'ONLINE'|'OFFLINE'; source:'GPS'|'DEMO'; deviceType?:'MOBILE'|'TABLET'|'DESKTOP'; browser?:string; ipAddress?:string|null; sessionId?:string; deviceId?:string };
 const R=6371000;
 export function haversine(a:Pick<Truck,'lat'|'lng'>,b:Pick<Truck,'lat'|'lng'>){const p=Math.PI/180,dLat=(b.lat-a.lat)*p,dLng=(b.lng-a.lng)*p,x=Math.sin(dLat/2)**2+Math.cos(a.lat*p)*Math.cos(b.lat*p)*Math.sin(dLng/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 function bearing(a:Truck,b:Truck){const p=Math.PI/180,y=Math.sin((b.lng-a.lng)*p)*Math.cos(b.lat*p),x=Math.cos(a.lat*p)*Math.sin(b.lat*p)-Math.sin(a.lat*p)*Math.cos(b.lat*p)*Math.cos((b.lng-a.lng)*p);return (Math.atan2(y,x)*180/Math.PI+360)%360;}

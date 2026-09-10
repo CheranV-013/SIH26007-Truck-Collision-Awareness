@@ -1,28 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-export type TruckRow = { id?: string; truck_id: string; session_id: string; device_id: string; latitude: number; longitude: number; accuracy: number | null; speed: number | null; heading: number | null; status: 'ACTIVE' | 'OFFLINE'; last_seen: string; created_at?: string; updated_at?: string };
+export type TruckRow = { id?: string; truck_id: string; session_id: string; device_id: string; device_type: 'MOBILE'|'TABLET'|'DESKTOP'; browser: string; ip_address: string | null; latitude: number; longitude: number; accuracy: number | null; speed: number | null; heading: number | null; status: 'ONLINE'|'OFFLINE'; last_seen: string; created_at?: string; updated_at?: string };
 let client: SupabaseClient | null = null;
-export function getRealtimeClient() {
-  if (typeof window === 'undefined') return null;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return client ?? (client = createClient(url, key, { auth: { persistSession: false } }));
-}
-export async function listActiveTrucks(timeoutMs = 15000) {
-  const db = getRealtimeClient();
-  if (!db) return { rows: [] as TruckRow[], error: new Error('Supabase environment variables are missing') };
-  const cutoff = new Date(Date.now() - timeoutMs).toISOString();
-  const result = await db.from('truck_sessions').select('*').gte('last_seen', cutoff).eq('status', 'ACTIVE');
-  return { rows: (result.data ?? []) as TruckRow[], error: result.error };
-}
-export async function publishTruck(row: TruckRow) {
-  const db = getRealtimeClient();
-  if (!db) return new Error('Supabase environment variables are missing');
-  const result = await db.from('truck_sessions').upsert(row, { onConflict: 'truck_id' });
-  return result.error;
-}
-export function openTruckChannel(onChange: (row: TruckRow) => void) {
-  const db = getRealtimeClient();
-  if (!db) return () => {};
-  const channel = db.channel('truck-sessions-live').on('postgres_changes', { event: '*', schema: 'public', table: 'truck_sessions' }, payload => { if (payload.eventType !== 'DELETE') onChange(payload.new as TruckRow); }).subscribe();
-  return () => { void db.removeChannel(channel); };
-}
+export function getRealtimeClient() { if (typeof window === 'undefined') return null; const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; if (!url || !key) return null; return client ?? (client = createClient(url, key, { auth: { persistSession: false } })); }
+export async function listActiveTrucks(timeoutMs = 15000) { const db = getRealtimeClient(); if (!db) return { rows: [] as TruckRow[], error: new Error('Supabase environment variables are missing') }; const cutoff = new Date(Date.now() - timeoutMs).toISOString(); const result = await db.from('truck_sessions').select('*').gte('last_seen', cutoff).eq('status', 'ONLINE'); return { rows: (result.data ?? []) as TruckRow[], error: result.error }; }
+export async function publishTruck(row: TruckRow) { const db = getRealtimeClient(); if (!db) return new Error('Supabase environment variables are missing'); const result = await db.from('truck_sessions').upsert(row, { onConflict: 'session_id' }); return result.error; }
+export function openTruckChannel(onChange: (row: TruckRow) => void) { const db = getRealtimeClient(); if (!db) return () => {}; const channel = db.channel('truck-sessions-live').on('postgres_changes', { event: '*', schema: 'public', table: 'truck_sessions' }, payload => { if (payload.eventType !== 'DELETE') onChange(payload.new as TruckRow); }).subscribe(); return () => { void db.removeChannel(channel); }; }
