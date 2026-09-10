@@ -1,0 +1,3 @@
+export function createTruckId() { if (typeof window==='undefined') return 'TRUCK-LOCAL'; const key='trucksafe-id'; const existing=localStorage.getItem(key); if(existing) return existing; const id=`TRUCK-${Math.random().toString(36).slice(2,6).toUpperCase()}`; localStorage.setItem(key,id); return id; }
+export function getStoredTruckId() { if(typeof window==='undefined') return null; return localStorage.getItem('trucksafe-id'); }
+export function getDeviceLabel() { if(typeof navigator==='undefined') return 'Browser device'; return /iphone|ipad/i.test(navigator.userAgent)?'Mobile Safari':/android/i.test(navigator.userAgent)?'Mobile Chrome':'Desktop browser'; }
