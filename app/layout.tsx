@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import './globals.css';
 
 export const metadata: Metadata = { title: 'TruckSafe — Real-time truck awareness', description: 'Proximity intelligence for connected heavy vehicles.' };

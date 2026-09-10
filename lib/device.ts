@@ -1,3 +1,13 @@
-export function createTruckId() { if (typeof window==='undefined') return 'TRUCK-LOCAL'; const key='trucksafe-id'; const existing=localStorage.getItem(key); if(existing) return existing; const id=`TRUCK-${Math.random().toString(36).slice(2,6).toUpperCase()}`; localStorage.setItem(key,id); return id; }
-export function getStoredTruckId() { if(typeof window==='undefined') return null; return localStorage.getItem('trucksafe-id'); }
-export function getDeviceLabel() { if(typeof navigator==='undefined') return 'Browser device'; return /iphone|ipad/i.test(navigator.userAgent)?'Mobile Safari':/android/i.test(navigator.userAgent)?'Mobile Chrome':'Desktop browser'; }
+const TRUCK_KEY = 'trucksafe-truck-id';
+const SESSION_KEY = 'trucksafe-session-id';
+function uuid() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+export function getOrCreateIdentity() {
+  if (typeof window === 'undefined') return { truckId: 'TRUCK-LOCAL', sessionId: 'LOCAL' };
+  let truckId = localStorage.getItem(TRUCK_KEY);
+  let sessionId = sessionStorage.getItem(SESSION_KEY);
+  if (!truckId) { truckId = `TRUCK-${uuid().replaceAll('-', '').slice(-4).toUpperCase()}`; localStorage.setItem(TRUCK_KEY, truckId); }
+  if (!sessionId) { sessionId = uuid(); sessionStorage.setItem(SESSION_KEY, sessionId); }
+  return { truckId, sessionId };
+}
+export function createTruckId() { return getOrCreateIdentity().truckId; }
+export function getStoredTruckId() { return typeof window === 'undefined' ? null : localStorage.getItem(TRUCK_KEY); }
